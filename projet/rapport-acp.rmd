@@ -1,0 +1,133 @@
+---
+title: "Pokemon"
+author: "becheikh Asma"
+date: "4 mai 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introduction
+Pokémon est l'abréviation de Pocket Monsters, pour monstres de poche en français. Ceux-ci vivent en parfaite harmonie avec les humains dans le monde Pokémon. Ils participent activement à la vie, et permettent aux humains de réaliser de grandes choses. Beaucoup de personnes du monde Pokémon souhaitent devenir un dresseur Pokémon. Cela consiste à capturer des Pokémon sauvages grâce à des Pokéballs, de les entraîner en faisant les faisant combattre contre d'autres Pokémon sauvages, et en combattant les Pokémon d'autres dresseurs.les Pokémon aiment combattre entre eux, cela leur donne une expérience précieuse qui leur permettront de grandir.
+
+## Objectif 
+Ce projet étudiera les données caractéristiques des Pokémon  afin de trouver s'il ya une corrélation de ces derniers  avec leurs types (defence /type et attack /type..) .
+
+## Description 
+
+Notre base de données « pokemon » comprend 721 Pokémon, y compris leur numéro, leur nom, leur premier et leur deuxième type, et les statistiques de base: HP, Attaque, Défense, Attaque spéciale, Défense spéciale et Vitesse (10 variables) . Elle a été très utile lors de l'enseignement des statistiques aux enfants. 
+
+
+les variables:
+4varibales qualitatives:
+Name: Nom de chaque Pokémon 
+Type 1: Chaque Pokémon a un type, ce qui détermine la faiblesse / la résistance aux attaques.
+Type 2: Certains Pokémon sont de type double.
+Legendary: qui montre si le pokemon est Légendaire ou non.
+9 variables quanlitatives:
+ # : ID Pour chaque Pokémon
+Total: Somme de toutes les statistiques qui suivent, un guide général de la force d'un Pokémon
+HP: les Points de Vie qui  déterminent le nombre de dégâts qu'un Pokémon peut recevoir avant le K.O. C'est la plus visible des statistiques au cours des combats, puisqu'elle apparaît graphiquement, à la fois sous la forme d'une barre de vie (de couleur verte, jaune ou rouge selon le pourcentage de PV restants) et sous forme chiffrée .
+Attack: L'Attaque (ou Force dans la première génération) détermine partiellement la quantité de dégâts qu'un Pokémon provoque lorsqu'il utilise une capacité physique.
+Defense: La Défense détermine partiellement la quantité de dégâts qu'un Pokémon subit lorsqu'il reçoit une capacité physique.
+SP Atk: L'Attaque spéciale détermine partiellement la quantité de dégâts qu'un Pokémon provoque lorsqu'il utilise une capacité spéciale.
+SP Def : La Défense spéciale détermine partiellement la quantité de dégâts qu'un Pokémon subit lorsqu'il reçoit une capacité spéciale.
+Speed : La Vitesse détermine quel Pokémon lance la première attaque au début d'un tour, dans le cas d'attaques de même priorité.
+
+## etude statistique descriptive
+
+
+```{r pokemon}
+data1<-read.csv("C:/Users/asus/Desktop/Pokemonhh.csv", sep=";")
+attach(data1)
+nrow(data1)
+attach(data1)
+nrow(data1)
+```
+## .
+
+```{r}
+head(data1)
+summary(data1)
+
+
+```
+
+
+## Boxplots pour comparer les distributions de la variable total selon le type de pokemon
+on remarque d'aprés le graphe suivant qu'il y a une differnece de totale des points pour les pokemones entre les differnts types , par exemple on observe un mediane de 600 pour les 
+'Dragon' et de 480 pour les 'Fire'. 
+```{r}
+library(ggplot2)
+p <- ggplot(data1, aes(factor(Type.1), Total))
+p + geom_boxplot(aes(fill=factor(Type.1)))+xlab("")+ ylab("total")+ 
+theme(axis.text.y = element_text(colour = "red",size=10),
+         legend.position="none",
+         axis.title.x= element_text(colour = "black",size=2),
+         axis.title.y= element_text(colour = "black",size=10),
+         axis.text.x = element_text(colour = "black",size=6))
+
+```
+
+Le graphe ci dessous montre comme exemple  qu'il y'a une forte corrélation entre les 2 variables total et attack .Donc il y'a une possibilité de faire une droite de régression entre les 2 variables.
+```{r}
+
+plot(x=data1$Total,y=data1$Attack,col="red")
+
+```
+
+## Analyse en composantes principales : ( ACP)
+
+Vu la nature de la base , on emploie la méthode d'analyse en composantes principales qui sert à mettre en évidence des similarités ou des oppositions entre variables et à repérer les variables les plus corrélées entre elles .
+
+1)- Les valeurs propres ( le scree plot)
+
+L'éblouis des valeurs propres nous permet d'étudier l'inertie des composantes principales. Le diagramme des valeurs propres suggère que les deux premières dimensions de l'ACP résument bien l'ensemble des 13 variables. Plus précisément, on peut voir ( tableau ci-dessous) que les pourcentages d'inertie associés aux deux premières dimensions valent respectivement 34 % et 24 %. Le plan principal de l'ACP permet donc de récupérer 58% de l'information contenue dans les 13 variables initiales. 
+```{r}
+library(FactoMineR)
+res.pca<-PCA(data1,scale.unit = TRUE,quanti.sup=5,quali.sup=c(2,3,4,13),graph = FALSE)
+res.pca$eig
+```
+## .
+```{r}
+library(ggplot2)
+library(grid)
+library(factoextra)
+fviz_screeplot(res.pca)
+```
+
+2)- Cercle de corrélation
+```{r}
+fviz_pca_var(res.pca,col.var="cos2")+scale_color_gradient2(low="green",mid="blue",high="red",midpoint=0.4)
+```
+
+
+En regardant le cercle de corrélation on remarque que certaines variables sont fortemenet correlées telles que les variables (Defense,Attack,Speed..) il y a des variables qui ne sont pas correlées telles que les variables Géneration et Total  . 
+
+3)-Matrice de corrélation 
+```{r}
+cormat <- cor(data1[5:11])
+library(corrplot)
+corrplot(cormat, type="upper", order="hclust", tl.col="black", tl.srt=45)
+
+
+```
+
+
+On remarque que les variables total et Attack sont très bien corrélées (0.8), Total et Atk (0.7), Total et SP.Def => Une forte liaison lie ces 4 variables et elles sont elles memes qui sont corrélees avec le 1er axe .
+
+4)- Représentation des patients ( individus)
+```{r}
+fviz_pca_ind(res.pca,geom=c("point","text"),col.ind="cos2")+scale_color_gradient2(low='green',mid='red',high='blue',midpoint=0.4)
+
+```
+
+La repartition des individus est corrolée avec les deux axes parallelement
+
+5)_Représentation simultanée des patients et des variables
+```{r}
+fviz_pca_biplot(res.pca, label = "var", habillage = data1$Type.1, ellipse.level = 0.95) + theme_classic()
+```
+
+
